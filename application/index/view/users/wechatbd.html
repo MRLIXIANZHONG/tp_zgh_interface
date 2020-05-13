@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="zh-cmn-Hans">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=0,viewport-fit=cover">
+    <title>WeUI</title>
+    <link rel="stylesheet" href="__STATIC__/style/weui.css"/>
+</head>
+<style>
+.page{
+
+}
+
+.page__bd_spacing{
+  width:100%;
+  text-align:center;
+  margin-top:10rem;
+}
+.icon-box__title{
+  margin-top:1rem;
+  font-size:1.8rem;
+}
+.weui-icon_msg{
+  width:6rem;
+  height:6rem;
+}
+</style>
+<body ontouchstart>
+<div class="page">
+
+    <div class="page__bd page__bd_spacing">
+        {if condition="$code==1000"}
+        <div class="icon-box">
+            <i class="weui-icon-success weui-icon_msg"></i>
+            <div class="icon-box__ctn">
+                <h3 class="icon-box__title">绑定成功</h3>
+            </div>
+        </div>
+        {else}
+        <div class="icon-box">
+            <i class="weui-icon-warn weui-icon_msg"></i>
+            <div class="icon-box__ctn">
+                <h3 class="icon-box__title">
+                   {if condition="$code==1001"}
+                    该微信号已经绑定其他账户
+                    {elseif condition="$code==1003"}
+                    用户不存在
+                    {else}
+                     绑定失败
+                    {/if}
+                </h3>
+            </div>
+        </div>
+        {/if}
+      
+    </div>
+</div>
+</body>
+</html>

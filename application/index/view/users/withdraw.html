@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0" />
+    <meta content="black" name="apple-mobile-web-app-status-bar-style" />
+    <meta content="yes" name="apple-mobile-web-app-capable" />
+    <meta name="apptitle" content="提现" />
+    <title>提现</title>
+    <meta name="keywords" content="提现" />
+    <meta name="description" content="提现" />
+    <link rel="stylesheet" type="text/css" href="http://r.imgccoo.cn/wap/webapp/font-tn/iconfont.css" />
+    <link rel="stylesheet" type="text/css" href="http://r.imgccoo.cn/wap/webapp/css/main.v1.css?v200511" />
+
+    <link rel="stylesheet" href="http://c.imgccoo.cn/wsh_new/font/iconfont.css?v=0.1">
+    <link rel="stylesheet" href="http://c.imgccoo.cn/wsh_new/css/main.css">
+    <link rel="stylesheet" href="http://c.imgccoo.cn/wsh_new/css/distribut.css">
+    <link rel="stylesheet" type="text/css" href="http://r.imgccoo.cn/wap/webapp/css/my-wallet.css" />
+
+    <script type="text/javascript" src="http://r.imgccoo.cn/wap/js2/jquery.js?v1.0"></script>
+    <script type="text/javascript" src="http://r.imgccoo.cn/wap/webapp/js/common.v2.js?v200511"></script>
+        
+</head>
+<body>
+        <script type="text/javascript">
+            wxJSAPI = function () { };
+            wxJSAPI.Config = function () { };
+        </script>
+    <div class="msg" style="position: relative;"></div>
+    
+<!--header头部 -->
+
+
+   <input type="hidden" id="user_id" value="{$data['user_id']|default=''}">
+   <input type="hidden" id="site_id" value="{$data['site_id']|default=''}">
+   <input type="hidden" id="sign" value="{$data['sign']|default=''}">
+
+
+
+<section class="cash-top">
+    <p class="p1">可提现金额</p>
+    <p class="num" id="mone1">0</p>
+</section>
+<section class="cash-cont">
+    <div class="cont-ipt disflex">
+        <i>￥</i>
+        <input class="ipt-money flexn" type="number"  name="money" id="money" placeholder="请输入需要提现的金额">
+            <span class="all">全部提现</span>
+    </div>
+    <p class="tips">本次最多可提现<b id="mone2">0</b>元</p>
+    <span class="cash">发起提现</span>
+    <!--<input type="hidden" name="hidWxSet" id="hidWxSet" value="1" />
+    <input type="hidden" name="hidMoney" id="hidMoney" value="0.32" />
+    <input type="hidden" name="hidMoneyMin" id="hidMoneyMin" value="2" />
+    <input type="hidden" name="hidMoneyMax" id="hidMoneyMax" value="10000" />
+    <input type="hidden" name="hidScale" id="hidScale" value="0" />
+    <input type="hidden" name="hidServiceChargeMin" id="hidServiceChargeMin" value="0" />
+    <input type="hidden" name="hidServiceChargeMax" id="hidServiceChargeMax" value="0" />-->
+</section>
+<section class="cash-success hide">
+    <div class="icon-suc">
+        <i class="ccoo qg-duihao1"></i>
+    </div>
+    <p class="p1">已成功发起提现申请</p>
+    <p class="p2">预计1~3个工作日内提现至绑定微信个人钱包</p>
+    <a class="link-box" href="cash_list.html">查看提现记录</a>
+</section>
+
+<script>
+    $(function () {
+
+       var site_id=$("#site_id").val();
+       var user_id=$("#user_id").val();
+       var signs=$("#sign").val();
+
+
+       if(!site_id || !user_id ){
+           $.DialogCreat({
+               'style': 'style2 ds-style3',
+               'content': {
+                   'p': [
+                       { 'className': 'dialog-p3', 'txt': "" },
+                       { 'className': 'go-bd', 'txt': '缺少参数' },
+                   ]
+               },
+           });
+           $('#mark').css({ 'height': '100%' }).addClass('close-sign');
+           $('#dialog').css('top', '200px');
+           return;
+       }
+
+        $.ajax({
+            async:false,
+            type: "post",
+            url: "check_user_wallet",
+            data: {site_id:site_id,user_id:user_id,sign:signs},
+            dataType: "json",
+            success:function(data){
+               if (data.code == 201){
+                //绑定微信
+                // console.log(data);return;
+                location.href='http://auth.hd3360.cn'+data.url;
+
+               }else if (data.code == 202){
+                   //错误
+                   $.DialogCreat({
+                       'style': 'style2 ds-style3',
+                       'content': {
+                           'p': [
+                               { 'className': 'dialog-p3', 'txt': "" },
+                               { 'className': 'go-bd', 'txt': data.msg },
+                           ]
+                       },
+                   });
+                   $('#mark').css({ 'height': '100%' }).addClass('close-sign');
+                   $('#dialog').css('top', '200px');
+
+                   return;
+
+               }else if (data.code ==200){
+                   $("#mone1").text(data.blance);
+                   $("#mone2").text(data.blance);
+                   $(".ipt-money").attr('data-money',data.blance)
+               }
+            },
+            error:function(err){
+                console.log(err);
+            }
+        });
+
+
+        // 输入监控
+        $('.ipt-money').on('input', function () {
+            var val = $.trim($(this).val());
+            if (val) {
+                $('.cash').addClass('on')
+            }
+        })
+        //提取全部
+        $('.all').click(function () {
+            var Oinput = $('.ipt-money')
+            var val = Oinput.attr('data-money');
+            Oinput.val(val);
+            $('.cash').addClass('on')
+        })
+
+        $('.cash').click(function () {
+            if (!$(this).hasClass('on')) return;
+            var tips = $('.tips');
+            var money=$("#money").val();
+            if (!money) {
+                tipFun('请输入提现金额');
+                $('.cash').removeClass('on');
+                $('.ipt-money').focus();
+                return
+            }else if (money <0){
+                tips.text('单次提现额度低于0元').addClass('red');
+                $('.cash').removeClass('on');
+                $('.ipt-money').focus();
+                return
+            } else if (money >  $('.ipt-money').data('money')) {
+                tips.text('提现额度额不得大于可提现金额');
+                $('.cash').removeClass('on');
+                $('.ipt-money').focus();
+                return
+            }
+
+            //配置签名
+            var sign='Withdrawal'+user_id+money+site_id+'jkmccoo';
+
+            $.ajax({
+                async:false,
+                type: "post",
+                url: "/api/Users/withdrawal",
+                data: {siteid:site_id,user_id:user_id,sign:sign,money:money},
+                dataType: "json",
+                success:function(data){
+                    console.log(data);
+                    if (data.code == 1000){
+                        tips.text(data.msg);
+                        window.history.go(-1);//返回上一页
+
+                    }else{
+                        //错误
+                        $.DialogCreat({
+                            'style': 'style2 ds-style3',
+                            'content': {
+                                'p': [
+                                    { 'className': 'dialog-p3', 'txt': "" },
+                                    { 'className': 'go-bd', 'txt': data.msg },
+                                ]
+                            },
+                        });
+                        $('#mark').css({ 'height': '100%' }).addClass('close-sign');
+                        $('#dialog').css('top', '200px');
+                        return;
+
+                    }
+                },
+                error:function(err){
+                    console.log(err);
+                }
+            });
+
+
+           /* $.ajax({
+                url: "/UserReward/AddWithdraw/",
+                type: "post",
+                data: { money: $("#money").val(), firstType: 22 },
+                success: function (data) {
+                    if (data.code == "1000") {
+                        $('body').find('.sf-box-cover').remove();
+                        $.DialogCreat({
+                            'style': 'style2 ds-style2 ds-one-btn',
+                            'content': {
+                                'p': [
+                                    { 'className': 'dialog-p3', 'txt': "" },
+                                    { 'className': 'go-bd', 'txt': '你的提现申请已提交1-3个工作日后可查看结果' }]
+                            },
+                            'footer': { 'style': 'dialog-footer1', 'txt': ['取消', '确定'] },
+                            'callback': function () {
+                                $.DialogClose();
+
+                                window.location.href = 'http://kaola.xinchang.xccoo.cn/m/Distribut/withdraw_log';
+                            }
+                        });
+                    } else if (data.code == "1001") {
+                        $(this).attr('disabled', false);
+                        tipFun('提现失败');
+                    } else if (data.code == "1011") {
+                        $(this).attr('disabled', false);
+                        tipFun(data.message, function () {
+                            window.location.reload();
+                        });
+                    } else {
+                        $(this).attr('disabled', false);
+                        tipFun(data.message);
+                    }
+                }
+            });*/
+        })
+
+    })
+
+    /* $(function () {
+          if ('1' == 1 || $("#hidWxSet").val() == '0') {
+              var oFootHtml = '<a href="/home/myindex.aspx">去绑定</a><a href="/home/myindex.aspx">去绑定</a>'
+              $.DialogCreat({
+                  'style': 'style2 ds-style3',
+                  'content': {
+                      'p': [
+                          { 'className': 'dialog-p3', 'txt': "" },
+                          { 'className': 'go-bd', 'txt': '你还没有绑定微信<br />绑定后方可提现！' },
+                          { 'className': 'nowx-foot', 'txt': oFootHtml }
+                      ]
+                  },
+              });
+              $('#mark').css({ 'height': '100%' }).addClass('close-sign');
+              $('#dialog').css('top', '200px');
+              return;
+          }
+          bdWx();
+          $(document).unbind();
+          //绑定
+          $('.bind').click(function () {
+              bdWx();
+        });
+    });
+     //提示
+      /*var flag = false;
+
+      function bdWx() {
+          var ccooua = navigator.userAgent.toLowerCase();
+          if (ccooua.indexOf('micromessenger') > -1) {
+              var hidWxSet = $("#hidWxSet").val();
+              if (hidWxSet == 0) {
+                  flag = false;
+                  $.DialogCreat({
+                      'style': 'style2 ds-style2',
+                      'content': {
+                          'p': [
+                              { 'className': 'dialog-p3', 'txt': "" },
+                              { 'className': 'go-bd', 'txt': '你还没有绑定微信<br />绑定后方可提现' }]
+                      },
+                      'footer': { 'style': 'dialog-footer1', 'txt': ['知道了', '去绑定'] },
+                      'callback': function() {
+                          $.DialogClose();
+
+                          WXLogin();
+                      }
+                  });
+                  $('#mark').css({ 'height': '100%' });
+                  $('#dialog').css('top', '200px');
+              }
+          } else {
+
+          }
+      }*/
+
+  /*   $(function () {
+         // 输入监控
+         $('.ipt-money').on('input', function () {
+             var val = $.trim($(this).val());
+             if (val) {
+                 $('.cash').addClass('on')
+             }
+         })
+         //提取全部
+         $('.all').click(function () {
+             var Oinput = $('.ipt-money')
+             var val = Oinput.attr('data-money');
+             Oinput.val(val);
+             $('.cash').addClass('on')
+         })
+         // 发起提现
+         $('.cash').click(function () {
+             if (!$(this).hasClass('on')) return
+             bdWx();
+             var Oipt = $('.ipt-money');
+             var tips = $('.tips');
+             var val = $.trim(Oipt.val()) - 0,
+                 money = Oipt.attr('data-money') - 0,
+                 smMoney = Oipt.attr('data-smMoney') - 0;
+             if (!val) {
+                 tipFun('请输入提现金额');
+                 $('.cash').removeClass('on');
+                 $('.ipt-money').focus();
+                 return
+             } else if (val < smMoney) {
+                 tips.text('单次提现额度低于' + smMoney + '元').addClass('red');
+                 $('.cash').removeClass('on');
+                 $('.ipt-money').focus();
+                 return
+             } else if (val > money) {
+                 tips.text('提现额度额不得大于可提现金额');
+                 $('.cash').removeClass('on');
+                 $('.ipt-money').focus();
+                 return
+             }
+
+             smAjax({
+                 url: "/UserReward/AddWithdraw/",
+                 type: "post",
+                 data: { money: $("#money").val(), firstType: 22 },
+                 success: function (data) {
+                     if (data.code == "1000") {
+                         $('body').find('.sf-box-cover').remove();
+                         $.DialogCreat({
+                             'style': 'style2 ds-style2 ds-one-btn',
+                             'content': {
+                                 'p': [
+                                     { 'className': 'dialog-p3', 'txt': "" },
+                                     { 'className': 'go-bd', 'txt': '你的提现申请已提交1-3个工作日后可查看结果' }]
+                             },
+                             'footer': { 'style': 'dialog-footer1', 'txt': ['取消', '确定'] },
+                             'callback': function () {
+                                 $.DialogClose();
+
+                                 window.location.href = 'http://kaola.xinchang.xccoo.cn/m/Distribut/withdraw_log';
+                             }
+                         });
+                     } else if (data.code == "1001") {
+                         $(this).attr('disabled', false);
+                         tipFun('提现失败');
+                     } else if (data.code == "1011") {
+                         $(this).attr('disabled', false);
+                         tipFun(data.message, function () {
+                             window.location.reload();
+                         });
+                     } else {
+                         $(this).attr('disabled', false);
+                         tipFun(data.message);
+                     }
+                 }
+             });
+         })
+     })*/
+</script>
+
+
+    <script type="text/javascript" src="https://img1.pccoo.cn/wap/webapp/js/jquery.cookie.js"></script>
+    <script type="text/javascript" src="https://img1.pccoo.cn/wap/webapp/js/mfabu.js"></script>
+    <div style="display: none;">
+        <img src="http://c.imgccoo.cn/wap/webapp/images/share.jpg" alt="城市通" />
+    </div>
+    <script type="text/javascript" src="https://chttps.pccoo.cn/wap/webapp/js/clipboard.min.js"></script>
+</body>
+</html>
